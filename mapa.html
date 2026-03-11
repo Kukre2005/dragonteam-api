@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DragonTeam - Live Tracking</title>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <style>
+        #map { height: 600px; width: 100%; border-radius: 10px; }
+        body { font-family: sans-serif; background: #f0f2f5; padding: 20px; }
+        h1 { color: #333; }
+        .status { margin-bottom: 10px; font-weight: bold; color: #007bff; }
+    </style>
+</head>
+<body>
+
+    <h1>🚀 DragonTeam Logistics Monitor</h1>
+    <div class="status" id="status">Esperando señal del chofer...</div>
+    <div id="map"></div>
+
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script>
+        // 1. Inicializar el mapa (centrado en Buenos Aires por defecto)
+        const map = L.map('map').setView([-34.6037, -58.3816], 13);
+
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            attribution: '© OpenStreetMap contributors'
+        }).addTo(map);
+
+        // Icono de moto/auto
+        const marker = L.marker([-34.6037, -58.3816]).addTo(map);
+
+        // ID del Chofer a rastrear (Asegúrate que sea el ID 1 que creaste)
+        const CHOFER_ID = 1;
+        const API_URL = `http://127.0.0.1:8000/ubicacion/${CHOFER_ID}`;
+
+        async function actualizarUbicacion() {
+            try {
+                const response = await fetch(API_URL);
+                const data = await response.json();
+
+                // Tu API devuelve una lista, tomamos la última (la primera del array)
+                if (data.length > 0) {
+                    const ultima = data[0]; // Asumiendo que tu API ordena por timestamp DESC
+                    const lat = ultima.latitud;
+                    const lng = ultima.longitud;
+
+                    // Actualizar marcador y centrar mapa
+                    marker.setLatLng([lat, lng]);
+                    map.panTo([lat, lng]);
+                    
+                    document.getElementById('status').innerText = 
+                        `📍 Última actualización: ${lat.toFixed(4)}, ${lng.toFixed(4)} (Chofer ID: ${CHOFER_ID})`;
+                }
+            } catch (error) {
+                console.error("Error conectando con el Backend:", error);
+                document.getElementById('status').innerText = "⚠️ Error de conexión con la API";
+            }
+        }
+
+        // Consultar cada 3 segundos (Polling simple)
+        setInterval(actualizarUbicacion, 3000);
+        actualizarUbicacion(); // Primera llamada inmediata
+    </script>
+</body>
+</html>

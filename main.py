@@ -80,7 +80,7 @@ def assign_pedido_to_chofer(pedido_id: int, chofer_id: int, db: Session = Depend
     return crud.assign_pedido(db=db, pedido_id=pedido_id, chofer_id=chofer_id)
 
 # --- Ubicacion Endpoints (Critical) ---
-@app.post("/ubicacion/", response_model=schemas.Ubicacion)
+@app.post("/ubicacion", response_model=schemas.Ubicacion)
 def create_ubicacion(ubicacion: schemas.UbicacionCreate, db: Session = Depends(get_db)):
     # Verify chofer exists
     db_chofer = crud.get_chofer(db, chofer_id=ubicacion.chofer_id)
